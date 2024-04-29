@@ -1,48 +1,39 @@
+import { CredentialsModel, UserModel } from "../config/data-source";
 import UserDto from "../dtos/userDto";
-import ICredential from "../interfaces/ICredential";
-import IUser from "../interfaces/IUser";
-import { createCredentialService, credentials } from "./credentialService";
-
-let id: number = 1;
-
-let users: IUser[] = [];
-//* Creamos un array que almacenara todos los usuarios, cómo una base de datos temporal, su interface debe tener un [] delante para indicar que es un array.
+import { Credentials } from "../entities/Credentials";
+import { Users } from "../entities/Users";
+import { createCredentialService } from "./credentialService";
 
 export const getUsersService = async () => {
+  const users: Users[] = await UserModel.find({
+    relations: {
+      credentials: true,
+      UserAppointments: true,
+    },
+  });
+
   return users;
-  //* Devolvemos el array completo de usuarios.
 };
 
 export const getUserIdService = async (id: number) => {
-  return users.find((user: IUser) => user.id === id);
-  //* Devolvemos el único elemento del array que coincida con la id pasada cómo parametro.
+  const user: Users | null = await UserModel.findOneBy({ id });
+  return user;
 };
 
 export const createUserService = async (userData: UserDto) => {
-  const newCredential = await createCredentialService({
-    username: userData.username,
-    password: userData.password,
-  });
-  //* Creamos la nueva credencial llamando al servicio de credenciales y pasandole el username y password cómo argumentos.
+  const newUser = await UserModel.create(userData);
+  //* Creamos un usuario nuevo con los datos que descompusimos anteriormente.
+  await UserModel.save(newUser);
+  //* Guardamos este nuevo usuario creado.
 
-  const credentialFind = credentials.find(
-    (credential: ICredential) => credential.username === userData.username
-  );
-  //* Encontramos el id de la credencial creada buscando en el array de credentials.
+  const credentials = await createCredentialService(userData);
+  //* Creamos una credencial al crear un usuario con el servicio para crear las credenciales.
 
-  const newUser = {
-    id,
-    name: userData.name,
-    email: userData.email,
-    birthdate: userData.birthdate,
-    nDni: userData.nDni,
-    credentialsId: credentialFind?.id,
-  };
-  id++;
-  //* Creamos el usuario nuevo con toda la info de las credenciales que recopilamos y la id de la credencial nueva creada, además le aumentamos el id en 1 cada vez que se crea uno nuevo.
+  if (credentials) {
+    newUser.credentials = credentials; // Asignar el ID de la credencial al usuario
+    await UserModel.save(newUser); // Guardar el usuario
+  }
 
-  users.push(newUser);
-  //* Metemos el usuario nuevo en el array.
-  
   return newUser;
+  //* Devolvemos el usuario nuevo creado.
 };

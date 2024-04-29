@@ -1,46 +1,49 @@
+import { AppointmentsModel, UserModel } from "../config/data-source";
 import AppointmentDto from "../dtos/AppointmentDto";
-import IAppointment from "../interfaces/IAppointment";
-
-let appointments: IAppointment[] = [];
-
-let id = 1;
+import { Appointments } from "../entities/Appointments";
 
 export const getAppointmentsService = async () => {
+  const appointments = await AppointmentsModel.find({
+    relations: {
+      user: true,
+    },
+    //* Indicamos que debe encuentre turnos y que visibilice la información de su relación user.
+  });
   return appointments;
+  //* Devolvemos la constante dónde configuramos todo lo anterior.
 };
 
 export const getAppointmentIdService = async (id: number) => {
-  return appointments.find(
-    (appointment: IAppointment) => appointment.id === id
-  );
+  const appointments: Appointments | null = await AppointmentsModel.findOneBy({
+    id,
+  });
+  //* Indicamos que debe encontrar el turno que concuerde con la id que se paso cómo parametro.
+  return appointments;
+  //* Devolvemos el turno que haya encontrado.
 };
 
 export const createAppointmentService = async (
   appointmentData: AppointmentDto
 ) => {
-  const newAppointment: IAppointment = {
-    id,
-    date: appointmentData.date,
-    time: appointmentData.time,
-    userId: appointmentData.userId,
-    status: appointmentData.status,
-  };
-  //* Guardamos todos los valores que vienen en el parametro appointmentData para luego guardarlos en el array.
-  id++;
-  //* Aumentamos en 1 el id cada vez que se crea un nuevo turno.
-  appointments.push(newAppointment);
-  //* Metemos el turno creado dentro del array de turnos.
+  const newAppointment = await AppointmentsModel.create(appointmentData);
+  //* Decimos que cree un nuevo turno con los datos que vienen cómo parametro de la función.
+  const appointmentResult = await AppointmentsModel.save(newAppointment);
+  //* Decimos que guarde el nuevo turno creado anteriormente.
+
+  const user = await UserModel.findOneBy({ id: appointmentData.userId });
+
+  if (user) {
+    newAppointment.user === user;
+    AppointmentsModel.save(user);
+  }
+
   return newAppointment;
-  //* Devolvemos el array creado.
+  //* Devolvemos el turno que se creo y guardó.
 };
 
 export const deleteAppointmentService = async (id: number) => {
-  const cancelledAppointment = appointments.findIndex(
-    (appointment: IAppointment) => appointment.id === id
-  );
-  if (cancelledAppointment === -1) {
-    return null;
-  }
-  appointments[cancelledAppointment].status = "cancelled";
-  return appointments[cancelledAppointment];
+  const appointment = await AppointmentsModel.findOneBy({ id });
+  //* Encontramos el turno a eliminar
+  const deletedAppointment = await AppointmentsModel.remove(appointment);
+  //* Lo eliminamos efectivamente
 };

@@ -37,10 +37,10 @@ export class Users {
 
   @OneToOne(() => Credentials, (credential) => credential.user)
   @JoinColumn()
-  credential: Credentials;
+  credentials: Credentials;
 
   @OneToMany(() => Appointments, (appointment) => appointment.user)
-  Appointments: Appointments[];
+  UserAppointments: Appointments[];
 }
 
 //* Decimos que cada valor ira en una columna distinta, y a los strings les asignamos el valor de caracteres máximo dependiendo para que serán, y al id le indicamos que sera el valor especial de sql reservado a los ids que los hace autoincrementales y auto asignados.

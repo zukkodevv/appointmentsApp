@@ -4,16 +4,19 @@ import {
   getUserIdService,
   getUsersService,
 } from "../services/userService";
-import { createCredentialService } from "../services/credentialService";
+import {
+  createCredentialService,
+  loginCredentialService,
+} from "../services/credentialService";
 import { error } from "console";
 
 export const getUsersController = async (req: Request, res: Response) => {
   try {
     const usersArr = await getUsersService();
-    res.status(201).json(usersArr);
+    res.status(200).json(usersArr);
     //* Traemos el array completo de usuarios.
   } catch (err) {
-    res.status(401).json({ error: "Me la estoy pasando bien raro" });
+    res.status(500).send(err);
     //* Sí hay un error devolvemos un json con el mensaje de error
   }
 };
@@ -31,16 +34,10 @@ export const getUserIdController = async (req: Request, res: Response) => {
   }
 };
 
-export const registerUserController = (req: Request, res: Response) => {
-  res
-    .status(201)
-    .json({ message: "Próximamente, tú usuario en nuestro servidor!" });
-};
-
-export const loginUserController = async (req: Request, res: Response) => {
+export const registerUserController = async (req: Request, res: Response) => {
   try {
     const { username, password, name, email, birthdate, nDni } = req.body;
-    const createUser = await createUserService({
+    const newUser = await createUserService({
       username,
       password,
       name,
@@ -48,8 +45,21 @@ export const loginUserController = async (req: Request, res: Response) => {
       birthdate,
       nDni,
     });
+    res.status(201).json(newUser);
+  } catch (err) {
+    res.status(401).json(err);
+  }
+};
 
-    res.status(201).json(createUser);
+export const loginUserController = async (req: Request, res: Response) => {
+  try {
+    const { username, password } = req.body;
+    const credentialValidator = await loginCredentialService({
+      username,
+      password,
+    });
+
+    res.status(201).json(credentialValidator);
   } catch (err) {
     res.status(401).json({ error: "Algo salió mal, muy mal..." });
   }

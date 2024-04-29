@@ -1,12 +1,10 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Users } from "./Users";
 
-Entity({
+@Entity({
   name: "appointments",
-});
-
+})
 //* Creamos una nueva entidad que llamamos appointments para los turnos.
-
 export class Appointments {
   @PrimaryGeneratedColumn()
   id: number;
@@ -26,7 +24,7 @@ export class Appointments {
   })
   status: string;
 
-  @ManyToOne(() => Users, (user) => user.Appointments)
+  @ManyToOne(() => Users, (user) => user.UserAppointments)
   user: Users;
 }
 

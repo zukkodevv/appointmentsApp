@@ -45,9 +45,9 @@ export const postAppointmentController = async (
       userId,
       status,
     });
-    res.status(401).json(newAppointment);
+    res.status(201).json(newAppointment);
   } catch (err) {
-    res.status(401).json({ error: "Algo salió mal..." });
+    res.status(500).json({ err });
     res.send(err);
   }
 };
@@ -59,11 +59,7 @@ export const deleteAppointmentController = async (
   try {
     const { id } = req.body;
     const deletedAppointment = await deleteAppointmentService(id);
-    if (!deletedAppointment) {
-      res.status(401).json({ message: "Turno no encontrado." });
-    } else {
-      res.status(201).json(deletedAppointment);
-    }
+    res.status(201).json({ message: "Turno eliminado con éxito" });
   } catch (err) {
     res.status(500).json({ error: "Algo malio sal..." });
     res.send(err);
